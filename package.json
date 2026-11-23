@@ -1,0 +1,56 @@
+{
+  "name": "@cantoo/capacitor-document-io",
+  "version": "0.1.0",
+  "description": "Read and write documents opened by the system in place. Not a replacement for @capacitor/filesystem.",
+  "main": "dist/plugin.cjs.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "unpkg": "dist/plugin.js",
+  "files": [
+    "android/src/main/",
+    "android/build.gradle",
+    "dist/",
+    "ios/Sources",
+    "Package.swift",
+    "CantooCapacitorDocumentIo.podspec"
+  ],
+  "author": "Cantoo",
+  "license": "MIT",
+  "keywords": [
+    "capacitor",
+    "plugin",
+    "document",
+    "file",
+    "ios",
+    "android"
+  ],
+  "scripts": {
+    "build": "npm run clean && tsc && rollup -c rollup.config.mjs",
+    "clean": "rimraf ./dist",
+    "watch": "tsc --watch",
+    "prepublishOnly": "npm run build",
+    "release": "release-it",
+    "release:next": "release-it --preRelease=next"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@capacitor/core": "^7.4.4",
+    "release-it": "^19.2.4",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.26.0",
+    "typescript": "^5.4.5"
+  },
+  "peerDependencies": {
+    "@capacitor/core": ">=7.0.0"
+  },
+  "capacitor": {
+    "ios": {
+      "src": "ios"
+    },
+    "android": {
+      "src": "android"
+    }
+  }
+}
