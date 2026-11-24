@@ -24,6 +24,7 @@ The name in `registerPlugin` is `DocumentIo`. Bytes are base64.
 | Method | What it does |
 | --- | --- |
 | `prepareOpenedDocument({ url })` | Activates and remembers the permission. Does not read the file. Returns `{ uri }` for later calls. |
+| `getInfo({ uri })` | Returns `{ name }` (display name with extension). On Android `content://` uses `OpenableColumns.DISPLAY_NAME`. |
 | `read({ uri })` | Returns `{ data }` with the document bytes. |
 | `write({ uri, data })` | Overwrites the same document without creating a sibling file. |
 | `release({ uri })` | Releases the permission. On iOS this balances `startAccessingSecurityScopedResource()`. |

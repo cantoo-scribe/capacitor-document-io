@@ -1,6 +1,7 @@
 import { WebPlugin } from '@capacitor/core'
 
 import type {
+  DocumentInfoResult,
   DocumentIoPlugin,
   DocumentUriOptions,
   PrepareOpenedDocumentOptions,
@@ -13,6 +14,10 @@ export class DocumentIoWeb extends WebPlugin implements DocumentIoPlugin {
   prepareOpenedDocument(
     _options: PrepareOpenedDocumentOptions
   ): Promise<PrepareOpenedDocumentResult> {
+    throw this.unimplemented('Not implemented on web.')
+  }
+
+  getInfo(_options: DocumentUriOptions): Promise<DocumentInfoResult> {
     throw this.unimplemented('Not implemented on web.')
   }
 

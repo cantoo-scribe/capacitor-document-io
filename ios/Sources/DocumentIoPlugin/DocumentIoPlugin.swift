@@ -113,6 +113,13 @@ enum DocumentStore {
         removeBookmark(for: document.url)
     }
 
+    /// Display name including extension (last path component of the accessible URL).
+    static func info(at path: String) throws -> String {
+        try withAccessibleURL(for: path) { url in
+            url.lastPathComponent
+        }
+    }
+
     private static func withAccessibleURL<T>(
         for path: String,
         _ body: (URL) throws -> T
@@ -180,14 +187,14 @@ enum DocumentStore {
         if url.absoluteString == path || url.path == path {
             return true
         }
-        let keys = Set(keys(for: url))
-        if keys.contains(path) {
+        let urlKeys = Set(keys(for: url))
+        if urlKeys.contains(path) {
             return true
         }
         if path.hasPrefix("content:") {
             return false
         }
-        return !keys.isDisjoint(with: keys(for: fileURL(from: path)))
+        return !urlKeys.isDisjoint(with: keys(for: fileURL(from: path)))
     }
 
     private static func canonical(_ url: URL) -> String {
@@ -282,6 +289,7 @@ public class DocumentIoPlugin: CAPPlugin, CAPBridgedPlugin {
     public let jsName = "DocumentIo"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "prepareOpenedDocument", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getInfo", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "read", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "write", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "release", returnType: CAPPluginReturnPromise),
@@ -321,6 +329,19 @@ public class DocumentIoPlugin: CAPPlugin, CAPBridgedPlugin {
             return
         }
         call.resolve(["uri": DocumentStore.prepare(urlString: url)])
+    }
+
+    @objc func getInfo(_ call: CAPPluginCall) {
+        guard let uri = call.getString("uri"), !uri.isEmpty else {
+            call.reject("uri is required")
+            return
+        }
+        do {
+            let name = try DocumentStore.info(at: uri)
+            call.resolve(["name": name])
+        } catch {
+            call.reject("Failed to get document info: \(error.localizedDescription)")
+        }
     }
 
     @objc func read(_ call: CAPPluginCall) {

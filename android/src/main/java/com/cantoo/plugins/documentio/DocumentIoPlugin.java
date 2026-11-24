@@ -1,7 +1,9 @@
 package com.cantoo.plugins.documentio;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
+import android.provider.OpenableColumns;
 import android.util.Base64;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -54,6 +56,24 @@ public class DocumentIoPlugin extends Plugin {
         JSObject result = new JSObject();
         result.put("uri", uri.toString());
         call.resolve(result);
+    }
+
+    @PluginMethod
+    public void getInfo(PluginCall call) {
+        String uriValue = call.getString("uri");
+        if (uriValue == null || uriValue.isEmpty()) {
+            call.reject("uri is required");
+            return;
+        }
+
+        try {
+            String name = resolveDisplayName(Uri.parse(uriValue));
+            JSObject result = new JSObject();
+            result.put("name", name != null ? name : "");
+            call.resolve(result);
+        } catch (Exception error) {
+            call.reject("Failed to get document info: " + error.getMessage());
+        }
     }
 
     @PluginMethod
@@ -135,6 +155,42 @@ public class DocumentIoPlugin extends Plugin {
         } catch (SecurityException ignored) {
             // VIEW grants are often temporary. They still work for this activity session.
         }
+    }
+
+    /**
+     * Prefer OpenableColumns.DISPLAY_NAME for content:// (path usually has no extension).
+     * Fall back to the last path segment / file name for file:// and opaque providers.
+     */
+    private String resolveDisplayName(Uri uri) {
+        if ("content".equals(uri.getScheme()) && getContext() != null) {
+            try (
+                Cursor cursor = getContext()
+                    .getContentResolver()
+                    .query(uri, new String[] { OpenableColumns.DISPLAY_NAME }, null, null, null)
+            ) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    if (index >= 0) {
+                        String displayName = cursor.getString(index);
+                        if (displayName != null && !displayName.isEmpty()) {
+                            return displayName;
+                        }
+                    }
+                }
+            } catch (Exception ignored) {
+                // Some providers reject the projection; fall through to path segment.
+            }
+            return uri.getLastPathSegment();
+        }
+
+        if ("file".equals(uri.getScheme()) && uri.getPath() != null) {
+            return new File(uri.getPath()).getName();
+        }
+
+        String last = uri.getLastPathSegment();
+        if (last != null && !last.isEmpty()) return last;
+        if (uri.getPath() != null) return new File(uri.getPath()).getName();
+        return null;
     }
 
     private byte[] readBytes(String path) throws Exception {

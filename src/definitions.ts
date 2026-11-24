@@ -28,6 +28,15 @@ export interface WriteDocumentOptions {
   data: string
 }
 
+export interface DocumentInfoResult {
+  /**
+   * Display name of the document (e.g. `note.txt`).
+   * On Android `content://` URIs this comes from `OpenableColumns.DISPLAY_NAME`.
+   * On iOS / `file://` it is the URL's last path component.
+   */
+  name: string
+}
+
 export interface DocumentIoPlugin {
   /**
    * Activate and remember the permission for a document the OS just handed the app.
@@ -36,6 +45,12 @@ export interface DocumentIoPlugin {
   prepareOpenedDocument(
     options: PrepareOpenedDocumentOptions
   ): Promise<PrepareOpenedDocumentResult>
+
+  /**
+   * Resolve the document's display name (including extension when the provider supplies it).
+   * Useful for `content://` URIs whose path has no file extension.
+   */
+  getInfo(options: DocumentUriOptions): Promise<DocumentInfoResult>
 
   /** Read the prepared document. */
   read(options: DocumentUriOptions): Promise<ReadDocumentResult>
